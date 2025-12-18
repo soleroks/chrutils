@@ -1,172 +1,248 @@
 /**
  * Chariot Development Utilities
- *
- * Version: 1.0
- * GitHub: soleroks
- * Purpose: deliver basic functions to increase code readability.
- * */
+ * Version: 1.3
+ */
 
-class ChariotNativeError extends Error {
-  constructor(message) {
-    super(message);
-  }
-}
-let directives = require("../../config/chariotDirectives.json");
-let achievements = require("../../config/achievements.json");
-const Discord = require("discord.js");
 const fs = require("fs");
 const path = require("path");
-const item = require("../../mongo/disabled_item");
-const defaultItems = require("../../config/jojoroleplay/defaultitems.json");
-const uye = require("../../mongo/uye");
-const core = require("../core/core@main");
+
 module.exports = {
-  ChariotNativeError,
-  randomizeAnArray: function (array) {
-    if (!Array.isArray(array)) return 1;
+  randomizeAnArray(array) {
+    if (!Array.isArray(array) || array.length === 0) return null;
+    return array[Math.floor(Math.random() * array.length)];
+  },
 
-    const randomIndex = Math.floor(Math.random() * array.length);
-    return array[randomIndex];
+  selectBetween(min, max) {
+    if (typeof min !== "number" || typeof max !== "number") return null;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   },
-  selectBetween: function (Min, Max) {
-    if (typeof Max !== "number") return 1;
-    if (typeof Min !== "number") return 1;
 
-    return Math.floor(Math.random() * (Max - Min) + 1) + Min;
+  type_validate(parameter, expectedType) {
+    return typeof parameter === expectedType;
   },
-  type_validate: function (parameter, expectedType) {
-    if (typeof parameter !== expectedType) return false;
-    if (typeof parameter === expectedType) return true;
-  },
-  randomNumberSpecifiedLength: function (length) {
+
+  randomNumberSpecifiedLength(length) {
     let rand = "";
     for (let i = 0; i < length; i++) {
-      rndN = Math.floor(Math.random() * 9);
+      const rndN = Math.floor(Math.random() * 10);
       rand += rndN;
     }
-
     return rand;
   },
-  updateJSON_field_specified: function (filePath, field, value) {
-    let p = path.resolve(process.cwd(), filePath);
-    let cnt = fs.readFileSync(p, "utf-8");
-    let jsonData = JSON.parse(cnt);
+
+  updateJSON_field_specified(filePath, field, value) {
+    const p = path.resolve(process.cwd(), filePath);
+    const jsonData = JSON.parse(fs.readFileSync(p, "utf-8"));
     jsonData[field] = value;
-    let updatedData = JSON.stringify(jsonData, null, 4); // Pretty print
-    fs.writeFileSync(p, updatedData, "utf-8");
-  },
-  patates_sec: function (gereksiz) {
-    let sans = Math.random() * 100;
-    if (sans <= 0.0005) {
-      return "https://cdn.discordapp.com/attachments/1242122679574728714/1288514117610770432/IMG_0616.png?ex=66f575c9&is=66f42449&hm=3a4c05bdd43d2d02bc06f45a77ed79ecba4b0c890844e0df44d339f534cf85ea&";
-    }
-    if (sans <= 2) {
-      return "https://cdn.discordapp.com/attachments/1097439473572261949/1288513267890655293/chrepplant.png?ex=66f574fe&is=66f4237e&hm=55732ad0df30f692289732b9c49a6fec832bc2215297da624cf374e98c2c6e91&";
-    }
-    if (sans <= 3) {
-      return "https://cdn.discordapp.com/attachments/1097439473572261949/1288513268289241118/sigara.png?ex=66f574fe&is=66f4237e&hm=a327eadb249aecf7e0613d2a0259ce3b10939aa241547ed9109b4f2036a04dac&";
-    }
-    if (sans <= 5) {
-      return "https://cdn.discordapp.com/attachments/1097439473572261949/1288513267576078417/gerizekal.png?ex=66f574fe&is=66f4237e&hm=878d61de0d5ed5c0ca72d0ac1a4752f9160bd911ae949c680e09b5a873904350&";
-    }
-    if (sans <= 10) {
-      return "https://cdn.discordapp.com/attachments/1097439473572261949/1288513268843020379/jooj.png?ex=66f574fe&is=66f4237e&hm=1a25faabbcfd0a96f01b49bb8147e762c139f5eae5a73ddb1a16d5aa3988a9ac&";
-    }
-    if (sans <= 80 || sans >= 80) {
-      return "https://cdn.discordapp.com/attachments/1097439473572261949/1288513268566069400/jooj_roleplay.png?ex=66f574fe&is=66f4237e&hm=d56f4a6d8daa58773fac53a5ca67bace50caf130056335e2a9d756ea4544ed5b&";
-    }
+    fs.writeFileSync(p, JSON.stringify(jsonData, null, 2));
   },
 
-  checkUserInventory: async function (id, name) {
-    let Item = defaultItems.items.find((x) => x.name === name);
+  CHRKV_read(relativePath) {
+    const filePath = path.join(process.cwd(), relativePath);
+    const lines = fs.readFileSync(filePath, "utf-8").split("\n");
+    const result = {};
 
-    let mb = await uye.findOne({ "memberInfo.id": id });
+    for (const line of lines) {
+      if (!line.trim() || line.trim().startsWith("#")) continue;
+      const [key, value] = line.split("=");
+      if (key && value) result[key.trim()] = value.trim();
+    }
 
-    let find = mb.memberInventory.memberItems.find((x) => x.itemID === Item.id);
-
-    if (find) return true;
-    else return false;
-  },
-  checkDefaultItems: async function (name) {
-    let Item = defaultItems.items.find((x) => x.name === name);
-
-    if (Item) return Item;
-    else return false;
+    return result;
   },
 
-  eligibleForHundredPercent: async function (id) {
-    /** 
-    let veri = await uye.findOne({ "memberInfo.id": id });
+  safeJSONParse(str, fallback = null) {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return fallback;
+    }
+  },
 
-    if (veri) {
-      let basarimD = veri.roleplayInfo.achievementInfo;
+  deepClone(obj) {
+    return structuredClone
+      ? structuredClone(obj)
+      : JSON.parse(JSON.stringify(obj));
+  },
 
-      if (!basarimD.eligibleForAchievements) return;
-      if (basarimD.eligibleForAchievements) {
-        let check = await core.achievement_has(id, "Farklı İnşa Edilmiş");
-        if (!check) {
-          await uye.findOneAndUpdate(
-            { "memberInfo.id": id },
-            {
-              $set: {
-                "roleplayInfo.achievementInfo.eligibleForAchievements": false,
-              },
-            }
-          );
+  isEmptyObject(obj) {
+    return obj && typeof obj === "object" && Object.keys(obj).length === 0;
+  },
 
-          await uye.findOneAndUpdate(
-            { "memberInfo.id": id },
-            {
-              $push: {
-                "roleplayInfo.achievementInfo.userHas": {
-                  achievementsName: achievements[101].title,
-                  achievementDescription: achievements[101].description,
-                },
-              },
-            }
-          );
+  sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  },
 
-          global.client.users.cache.get(id).send({
-            embeds: [
-              new Discord.EmbedBuilder()
-                .setColor("Green")
-                .setTitle(`${achievements[101].title}!`)
-                .setDescription(`${achievements[101].description}`),
-            ],
-          });
-        } else return;
+  clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+  },
+
+  uniqueArray(arr) {
+    return Array.isArray(arr) ? [...new Set(arr)] : [];
+  },
+
+  fileExists(filePath) {
+    try {
+      fs.accessSync(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  ensureDir(dirPath) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  },
+
+  readJSON(filePath, fallback = null) {
+    try {
+      return JSON.parse(fs.readFileSync(filePath, "utf-8"));
+    } catch {
+      return fallback;
+    }
+  },
+
+  writeJSON(filePath, data) {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  },
+
+  isDefined(val) {
+    return val !== undefined && val !== null;
+  },
+
+  isNumber(val) {
+    return typeof val === "number" && !Number.isNaN(val);
+  },
+
+  isString(val) {
+    return typeof val === "string";
+  },
+
+  isBoolean(val) {
+    return typeof val === "boolean";
+  },
+
+  isFunction(val) {
+    return typeof val === "function";
+  },
+
+  isPromise(val) {
+    return !!val && typeof val.then === "function";
+  },
+
+  capitalize(str) {
+    if (typeof str !== "string" || !str.length) return str;
+    return str[0].toUpperCase() + str.slice(1);
+  },
+
+  lowerFirst(str) {
+    if (typeof str !== "string" || !str.length) return str;
+    return str[0].toLowerCase() + str.slice(1);
+  },
+
+  slugify(str) {
+    if (typeof str !== "string") return "";
+    return str
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  },
+
+  truncate(str, length) {
+    if (typeof str !== "string") return str;
+    if (str.length <= length) return str;
+    return str.slice(0, length) + "...";
+  },
+
+  chunkArray(arr, size) {
+    if (!Array.isArray(arr) || size <= 0) return [];
+    const res = [];
+    for (let i = 0; i < arr.length; i += size) {
+      res.push(arr.slice(i, i + size));
+    }
+    return res;
+  },
+
+  flattenArray(arr) {
+    return Array.isArray(arr) ? arr.flat(Infinity) : [];
+  },
+
+  removeDuplicates(arr) {
+    return Array.isArray(arr) ? [...new Set(arr)] : [];
+  },
+
+  shuffleArray(arr) {
+    if (!Array.isArray(arr)) return [];
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  },
+
+  pick(obj, keys = []) {
+    if (!obj || typeof obj !== "object") return {};
+    return keys.reduce((acc, k) => {
+      if (k in obj) acc[k] = obj[k];
+      return acc;
+    }, {});
+  },
+
+  omit(obj, keys = []) {
+    if (!obj || typeof obj !== "object") return {};
+    const res = { ...obj };
+    for (const k of keys) delete res[k];
+    return res;
+  },
+
+  deepFreeze(obj) {
+    Object.freeze(obj);
+    for (const key in obj) {
+      if (
+        obj[key] &&
+        typeof obj[key] === "object" &&
+        !Object.isFrozen(obj[key])
+      ) {
+        this.deepFreeze(obj[key]);
       }
     }
-      */
+    return obj;
   },
-  fixCHRnames: async function () {
-    const directoryPath = path.join(__dirname, "../../komutlar", "CHR");
 
-    fs.readdir(directoryPath, (err, files) => {
-      if (err) {
-        return console.log("Unable to scan directory: " + err);
-      }
+  nowUnix() {
+    return Math.floor(Date.now() / 1000);
+  },
 
-      files.forEach((file) => {
-        if (file.startsWith("CHR") && file.endsWith(".js")) {
-          const filePath = path.join(directoryPath, file);
-          const fileContent = fs.readFileSync(filePath, "utf8");
-          const nameMatch = fileContent.match(/name:\s*["'](.+?)["']/);
+  formatDateISO(date = new Date()) {
+    return date.toISOString();
+  },
 
-          if (nameMatch) {
-            const newName = nameMatch[1] + ".js";
-            const newFilePath = path.join(directoryPath, newName);
+  elapsed(startMs) {
+    return Date.now() - startMs;
+  },
 
-            fs.rename(filePath, newFilePath, (err) => {
-              if (err) {
-                console.log("Error renaming file:", err);
-              } else {
-                console.log(`Renamed ${file} to ${newName}`);
-              }
-            });
-          }
-        }
-      });
-    });
+  isNode() {
+    return typeof process !== "undefined" && !!process.versions?.node;
+  },
+
+  env(key, fallback = null) {
+    return process.env[key] ?? fallback;
+  },
+
+  readText(filePath) {
+    return fs.readFileSync(filePath, "utf-8");
+  },
+
+  writeText(filePath, data) {
+    fs.writeFileSync(filePath, data);
+  },
+
+  appendText(filePath, data) {
+    fs.appendFileSync(filePath, data);
+  },
+
+  deleteFile(filePath) {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   },
 };
