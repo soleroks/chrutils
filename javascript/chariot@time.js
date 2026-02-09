@@ -2,19 +2,22 @@
  * CHARIOT/TIME
  *
  * Chariot Time is a little time library which can be used in precise time calculations using UNIX timestamps.
- * Version: 1.4
-
+ * Version: 1.6
+ * Author: soleroks/Chariot
+ * Github: github.com/soleroks
  */
-let directives = require("./../../config/chariotDirectives.json");
 const moment = require("moment");
-const { ChariotNativeError } = require("./chariot@util");
 moment.locale("tr");
 console.log("[TIME] Zaman kütüphanesi hazır.");
 
 module.exports = {
+  convertISODateToNormalDate: async function (ISODATE) {
+    if (!ISODATE) return null;
+
+    return moment(ISODATE).format("DD/MM/YYYY HH:mm");
+  },
   convertTimestampToEpochDate: async function (timestampDate) {
-    if (!timestampDate)
-      throw new ChariotNativeError("Lütfen bir zaman verisi girin.");
+    if (!timestampDate) return console.log("Lütfen bir zaman verisi girin.");
     const chariotTime = moment(timestampDate).unix();
 
     return chariotTime;
@@ -30,12 +33,12 @@ module.exports = {
     const minutes = Math.floor(duration.asMinutes() % 60);
     const seconds = Math.floor(duration.asSeconds() % 60);
 
-    return (ChariotNativeTime = {
+    return {
       day: days,
       hour: hours,
       minute: minutes,
       second: seconds,
-    });
+    };
   },
   reallyIsBetween: async function (date1, date2) {
     const currentEpoch = moment().unix();
@@ -59,7 +62,7 @@ module.exports = {
       randomTime2 = crnt.clone().add(rndm2, "hours");
 
       [randomTime1, randomTime2] = [randomTime1, randomTime2].sort(
-        (a, b) => a - b
+        (a, b) => a - b,
       );
     } while (randomTime2.isBefore(currentTime));
 
