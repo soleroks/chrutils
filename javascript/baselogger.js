@@ -1,5 +1,4 @@
-const directives = require("../../config/chariotDirectives.json");
-const config = require("../../config/ayarlar.json");
+
 const { currentTime } = require("./chariot@time");
 class Baselogger {
   constructor(log = "") {
