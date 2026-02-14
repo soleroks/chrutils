@@ -3,7 +3,7 @@
  *
  * Chariot Time is a little time library which can be used in precise time calculations using UNIX timestamps.
  * Version: 1.6
- * Author: soleroks/Chariot
+ * Author: soleroks
  * Github: github.com/soleroks
  */
 const moment = require("moment");
