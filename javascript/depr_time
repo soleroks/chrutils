@@ -6,6 +6,8 @@
  * Author: soleroks
  * Github: github.com/soleroks
  */
+
+// !! DEPRECATION: This module is ass.
 const moment = require("moment");
 moment.locale("tr");
 console.log("[TIME] Zaman kütüphanesi hazır.");
